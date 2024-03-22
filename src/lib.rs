@@ -37,7 +37,7 @@ pub fn handle_client<T: std::io::Read + std::io::Write>(mut stream: T) {
             .collect();
 
     let mut header = Header::new();
-    process_header(&mut header,&http_request);
+    header.process_header(&http_request);
     dbg!(&http_request);
 
 

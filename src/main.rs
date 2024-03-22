@@ -17,6 +17,7 @@ use local_ip_address::local_ip;
 fn main() {
 
     let my_local_ip = local_ip().unwrap().to_string();
+    //dbg!(&my_local_ip);
 
     
     let mut acceptor = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
