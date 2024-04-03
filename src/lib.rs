@@ -1,32 +1,27 @@
-pub mod identifier;
 pub mod header;
+pub mod identifier;
 
 use sscanf::sscanf;
 
-use identifier::*;
 use header::*;
+use identifier::*;
 
-use openssl::ssl::{SslMethod, SslAcceptor, SslStream, SslFiletype};
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod, SslStream};
 
-use std::{fs,
+use std::{
+    fs,
     io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
 };
 
-
-
 pub fn handle_client<T: std::io::Read + std::io::Write>(mut stream: T) {
-
-
-    let mut curent_user : Option<User> = None;
+    let mut curent_user: Option<User> = None;
     //check_user("sylane","password",&mut curent_user);
     //dbg!(&curent_user);
     /*let paths = fs::read_dir("./src").unwrap();
-    for path in paths {
-      println!("Name: {}", path.unwrap().path().display())
-  }*/
-
-
+      for path in paths {
+        println!("Name: {}", path.unwrap().path().display())
+    }*/
 
     loop {
         let buf_reader = BufReader::new(&mut stream);
@@ -36,25 +31,25 @@ pub fn handle_client<T: std::io::Read + std::io::Write>(mut stream: T) {
             .take_while(|line| !line.is_empty())
             .collect();
 
-    let mut header = Header::new();
-    header.process_header(&http_request);
-    dbg!(&http_request);
+        let mut header = Header::new();
+        header.process_header(&http_request);
+        dbg!(&http_request);
 
-
-    if header.failure{
-                break;
-        }
-
-
-    else if header.request_uri.starts_with("/connection_form") {
-          if let Ok((name,password)) = sscanf!(header.request_uri,"/connection_form?name={}&password={}",String,String) {
-
-            check_user(&name,&password,&mut curent_user);
-            if let Some(ref usr) = curent_user {
-
-              let status_line = "HTTP/1.1 200 OK";
-              //let contents = fs::read_to_string("hello.html").unwrap();
-              let contents = format!("<!DOCTYPE html>
+        if header.failure {
+            break;
+        } else if header.request_uri.starts_with("/connection_form") {
+            if let Ok((name, password)) = sscanf!(
+                header.request_uri,
+                "/connection_form?name={}&password={}",
+                String,
+                String
+            ) {
+                check_user(&name, &password, &mut curent_user);
+                if let Some(ref usr) = curent_user {
+                    let status_line = "HTTP/1.1 200 OK";
+                    //let contents = fs::read_to_string("hello.html").unwrap();
+                    let contents = format!(
+                        "<!DOCTYPE html>
               <html lang=\"en\">
                 <head>
                   <meta charset=\"utf-8\">
@@ -65,19 +60,19 @@ pub fn handle_client<T: std::io::Read + std::io::Write>(mut stream: T) {
                   <p>Hi from Rust</p>
                   <p>You are {} </p>
                 </body>
-              </html>", usr.name );
-              let length = contents.len();
-              let response =format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-          
-              stream.write_all(response.as_bytes()).unwrap();
-          
+              </html>",
+                        usr.name
+                    );
+                    let length = contents.len();
+                    let response =
+                        format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
 
-            }
-
-            else {
-              let status_line = "HTTP/1.1 200 OK";
-    //let contents = fs::read_to_string("hello.html").unwrap();
-    let contents = format!("<!DOCTYPE html>
+                    stream.write_all(response.as_bytes()).unwrap();
+                } else {
+                    let status_line = "HTTP/1.1 200 OK";
+                    //let contents = fs::read_to_string("hello.html").unwrap();
+                    let contents = format!(
+                        "<!DOCTYPE html>
     <html lang=\"en\">
     <head>
         <meta charset=\"UTF-8\">
@@ -96,31 +91,31 @@ pub fn handle_client<T: std::io::Read + std::io::Write>(mut stream: T) {
           </form> 
         
     </body>
-    </html>");
-    let length = contents.len();
-    let response =format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+    </html>"
+                    );
+                    let length = contents.len();
+                    let response =
+                        format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
 
-    stream.write_all(response.as_bytes()).unwrap();
+                    stream.write_all(response.as_bytes()).unwrap();
+                }
             }
-
-          }
-    }
-
-    else if header.request_method.starts_with("GET") {
-            handle_get(&mut stream, &header,&curent_user);
+        } else if header.request_method.starts_with("GET") {
+            handle_get(&mut stream, &header, &curent_user);
         }
-
     }
-    
 }
 
-fn handle_get<T : std::io::Read + std::io::Write>(stream : &mut T ,request : &Header,user : &Option<User> ) {
-
-  if request.request_uri == "/test"{
-
-    let status_line = "HTTP/1.1 200 OK";
-    //let contents = fs::read_to_string("hello.html").unwrap();
-    let contents = format!("<!DOCTYPE html>
+fn handle_get<T: std::io::Read + std::io::Write>(
+    stream: &mut T,
+    request: &Header,
+    user: &Option<User>,
+) {
+    if request.request_uri == "/test" {
+        let status_line = "HTTP/1.1 200 OK";
+        //let contents = fs::read_to_string("hello.html").unwrap();
+        let contents = format!(
+            "<!DOCTYPE html>
     <html lang=\"en\">
       <head>
         <meta charset=\"utf-8\">
@@ -131,19 +126,24 @@ fn handle_get<T : std::io::Read + std::io::Write>(stream : &mut T ,request : &He
         <p>Hi from Rust</p>
         <p>You are {} </p>
       </body>
-    </html>", if let Some(usr) = user {usr.name.clone()} else {String::from("Anonymous")} );
-    let length = contents.len();
-    let response =format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+    </html>",
+            if let Some(usr) = user {
+                usr.name.clone()
+            } else {
+                String::from("Anonymous")
+            }
+        );
+        let length = contents.len();
+        let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
 
-    stream.write_all(response.as_bytes()).unwrap();
+        stream.write_all(response.as_bytes()).unwrap();
+    }
 
-  }
-
-  if request.request_uri == "/"{
-
-    let status_line = "HTTP/1.1 200 OK";
-    //let contents = fs::read_to_string("hello.html").unwrap();
-    let contents = format!("<!DOCTYPE html>
+    if request.request_uri == "/" {
+        let status_line = "HTTP/1.1 200 OK";
+        //let contents = fs::read_to_string("hello.html").unwrap();
+        let contents = format!(
+            "<!DOCTYPE html>
     <html lang=\"en\">
     <head>
         <meta charset=\"UTF-8\">
@@ -161,14 +161,11 @@ fn handle_get<T : std::io::Read + std::io::Write>(stream : &mut T ,request : &He
           </form> 
         
     </body>
-    </html>");
-    let length = contents.len();
-    let response =format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+    </html>"
+        );
+        let length = contents.len();
+        let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
 
-    stream.write_all(response.as_bytes()).unwrap();
-
-  }
-
-  
-
+        stream.write_all(response.as_bytes()).unwrap();
+    }
 }
