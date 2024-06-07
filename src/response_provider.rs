@@ -36,8 +36,18 @@ async fn respond_file(path: &str) -> io::Result<Response> {
         let content_type: String;
         match content_ext {
             //simple text
-            "txt" | "html" | "css" | "js" | "rs" => {
+            "txt" => {
                 content_type = "text/plain".to_string();
+                return Ok((
+                    [(header::CONTENT_TYPE, &content_type)],
+                    String::from_utf8_lossy(&contents).to_string(),
+                )
+                    .into_response());
+            }
+
+            //other text format
+            "html" | "css" | "js" | "rs" => {
+                content_type = format!("text/{}", content_ext);
                 return Ok((
                     [(header::CONTENT_TYPE, &content_type)],
                     String::from_utf8_lossy(&contents).to_string(),
@@ -48,6 +58,12 @@ async fn respond_file(path: &str) -> io::Result<Response> {
             //image formats
             "png" | "jpg" | "svg" | "webp" | "gif" => {
                 content_type = format!("image/{}", content_ext);
+                return Ok(([(header::CONTENT_TYPE, &content_type)], contents).into_response());
+            }
+
+            //pdf
+            "pdf" => {
+                content_type = format!("application/{}", content_ext);
                 return Ok(([(header::CONTENT_TYPE, &content_type)], contents).into_response());
             }
 
@@ -89,8 +105,8 @@ async fn respond_dir(path: &str) -> io::Result<Response> {
             let name = entry.file_name().into_string().unwrap();
             fls.push(File {
                 name: name.clone(),
-                content_type: "file".to_string(),
-                full_path: format!("{}/{}", path, name.clone()),
+                content_type: "dir".to_string(),
+                full_path: format!("{}{}", path, name.clone()),
             });
         }
     }
