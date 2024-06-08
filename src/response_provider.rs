@@ -6,7 +6,9 @@ use axum::{
 use tokio::{fs, io};
 
 use serde::Serialize;
+//###########################################################################################//
 
+//internal file structure to send the contents of a directory as a json to the network
 #[derive(Serialize)]
 struct File {
     name: String,
@@ -14,6 +16,13 @@ struct File {
     full_path: String,
 }
 
+//###########################################################################################//
+
+/*read the file or the directory and provide a response for the network
+it can be :
+    -the content of the file ,as a string or a byte stream depending of the extention of the file
+    - a json of the content of the directory structured as the File struct
+*/
 pub async fn respond(path: &str) -> io::Result<Response> {
     let md = fs::metadata(path).await?;
     //is a dir ?
@@ -25,6 +34,10 @@ pub async fn respond(path: &str) -> io::Result<Response> {
         respond_file(path).await
     }
 }
+
+//###########################################################################################//
+
+//internal functions
 
 //provide a response for a file
 async fn respond_file(path: &str) -> io::Result<Response> {
@@ -96,7 +109,7 @@ async fn respond_dir(path: &str) -> io::Result<Response> {
             let name = entry.file_name().into_string().unwrap();
             fls.push(File {
                 name: name.clone(),
-                content_type: "file".to_string(),
+                content_type: resolve_extention(&name),
                 full_path: format!("{}/{}", path, name.clone()),
             });
         }
@@ -106,9 +119,39 @@ async fn respond_dir(path: &str) -> io::Result<Response> {
             fls.push(File {
                 name: name.clone(),
                 content_type: "dir".to_string(),
-                full_path: format!("{}{}", path, name.clone()),
+                full_path: format!("{}/{}", path, name.clone()),
             });
         }
     }
     Ok(Json(fls).into_response())
 }
+
+//return the content type of a file knowing it's extention
+fn resolve_extention(f_name: &str) -> String {
+    //try to find extention
+    if let Some(idx) = f_name.rfind('.') {
+        let content_ext = &f_name[(idx + 1)..];
+        match content_ext {
+            //simple text
+            "txt" => String::from("txt"),
+
+            //source files
+            "html" | "css" | "js" | "rs" => String::from("code_file"),
+
+            //image formats
+            "png" | "jpg" | "svg" | "webp" | "gif" => String::from("image"),
+
+            //pdf
+            "pdf" => String::from("pdf"),
+
+            //video formats
+            "mp4" | "webm" => String::from("video"),
+            //unkwown file extention
+            _ => String::from("default_file"),
+        }
+    } else {
+        String::from("default_file")
+    }
+}
+
+//todo : trim path in full-path for repond_dir if request ends whit "/"

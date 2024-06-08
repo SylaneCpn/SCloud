@@ -9,6 +9,7 @@ use assets::assets;
 use index::root;
 use raw::raw;
 
+use local_ip_address::local_ip;
 use tokio;
 
 #[tokio::main]
@@ -18,9 +19,12 @@ async fn main() {
         .route("/assets/*path", get(assets))
         .route("/raw/*path", get(raw));
 
-    let addr = "172.22.27.170:3000";
-    println!("Server listening on {addr}");
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    let addr = local_ip().unwrap().to_string();
+    let port = 3000;
+    println!("Server listening on {addr}:{port}");
+    let listener = tokio::net::TcpListener::bind(format!("{addr}:{port}"))
+        .await
+        .unwrap();
     axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
