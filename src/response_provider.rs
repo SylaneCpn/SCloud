@@ -57,10 +57,10 @@ pub async fn respond_main_dir(user: &Option<User>) -> io::Result<Response> {
     let mut fls: Vec<File> = Vec::new();
 
     while let Some(entry) = entries.next_entry().await? {
-         if let Some(ref user) = *user{
-            
-            if verify_access(user,&slash_path(&entry.file_name().into_string().unwrap())) {
-                let metadata = entry.metadata().await?;
+        //check if user is connected
+        let metadata = entry.metadata().await?;
+        if let Some(ref user) = *user {
+            if verify_access(user, &slash_path(&entry.file_name().into_string().unwrap())) {
                 //file
                 if metadata.is_file() {
                     let name = entry.file_name().into_string().unwrap();
@@ -80,11 +80,8 @@ pub async fn respond_main_dir(user: &Option<User>) -> io::Result<Response> {
                     });
                 }
             }
-        }
-
-        else {
-            let metadata = entry.metadata().await?;
-            //dir
+        } else {
+            //only return the public dir
             if !metadata.is_file() && (&entry.file_name().into_string().unwrap() == "public") {
                 let name = entry.file_name().into_string().unwrap();
                 fls.push(File {
@@ -227,7 +224,7 @@ fn trim_path(path: &str) -> String {
     trimmed
 }
 
-fn slash_path(path : &str)-> String {
+fn slash_path(path: &str) -> String {
     let mut added = String::from(path);
     if !added.ends_with("/") {
         added += "/";

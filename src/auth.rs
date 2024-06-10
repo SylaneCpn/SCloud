@@ -26,7 +26,7 @@ pub fn verify_access(user: &User, path: &str) -> bool {
     if user.admin {
         //grant access if admin
         true
-    } else if path.starts_with("public/") || path.starts_with(&format!("{}/",user.name)) {
+    } else if path.starts_with("public/") || path.starts_with(&format!("{}/", user.name)) {
         //user has access to the repo
         true
     } else {
