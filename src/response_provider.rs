@@ -1,11 +1,13 @@
 use axum::{
-    http::{header,StatusCode},
+    http::{header, StatusCode},
     response::{IntoResponse, Response},
     Json,
 };
 use tokio::{fs, io};
 
 use serde::Serialize;
+
+use crate::auth::{verify_access, User};
 //###########################################################################################//
 
 //internal file structure to send the contents of a directory as a json to the network
@@ -46,6 +48,55 @@ pub async fn respond(path: &str) -> io::Result<Response> {
     else {
         respond_file(path).await
     }
+}
+
+//provide a response for the main directory
+pub async fn respond_main_dir(user: &Option<User>) -> io::Result<Response> {
+    let path = "files/";
+    let mut entries = fs::read_dir(path).await?;
+    let mut fls: Vec<File> = Vec::new();
+
+    while let Some(entry) = entries.next_entry().await? {
+         if let Some(ref user) = *user{
+            
+            if verify_access(user,&slash_path(&entry.file_name().into_string().unwrap())) {
+                let metadata = entry.metadata().await?;
+                //file
+                if metadata.is_file() {
+                    let name = entry.file_name().into_string().unwrap();
+                    fls.push(File {
+                        name: name.clone(),
+                        content_type: resolve_extention(&name),
+                        full_path: format!("{}/{}", trim_path(path), name.clone()),
+                    });
+                }
+                //directory
+                else {
+                    let name = entry.file_name().into_string().unwrap();
+                    fls.push(File {
+                        name: name.clone(),
+                        content_type: "dir".to_string(),
+                        full_path: format!("{}/{}", trim_path(path), slash_path(&name)),
+                    });
+                }
+            }
+        }
+
+        else {
+            let metadata = entry.metadata().await?;
+            //dir
+            if !metadata.is_file() && (&entry.file_name().into_string().unwrap() == "public") {
+                let name = entry.file_name().into_string().unwrap();
+                fls.push(File {
+                    name: name.clone(),
+                    content_type: "dir".to_string(),
+                    full_path: format!("{}/{}", trim_path(path), name.clone()),
+                });
+            }
+        }
+    }
+
+    Ok(Json(fls).into_response())
 }
 
 //###########################################################################################//
@@ -132,7 +183,7 @@ async fn respond_dir(path: &str) -> io::Result<Response> {
             fls.push(File {
                 name: name.clone(),
                 content_type: "dir".to_string(),
-                full_path: format!("{}/{}", trim_path(path), name.clone()),
+                full_path: format!("{}/{}", trim_path(path), slash_path(&name)),
             });
         }
     }
@@ -174,4 +225,12 @@ fn trim_path(path: &str) -> String {
         trimmed.pop();
     }
     trimmed
+}
+
+fn slash_path(path : &str)-> String {
+    let mut added = String::from(path);
+    if !added.ends_with("/") {
+        added += "/";
+    }
+    added
 }
