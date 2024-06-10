@@ -1,4 +1,5 @@
 mod assets;
+mod auth;
 mod index;
 mod raw;
 mod response_provider;
@@ -7,7 +8,7 @@ use axum::{routing::get, Router};
 
 use assets::assets;
 use index::root;
-use raw::raw;
+use raw::files;
 
 use local_ip_address::local_ip;
 use tokio;
@@ -17,7 +18,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(root))
         .route("/assets/*path", get(assets))
-        .route("/raw/*path", get(raw));
+        .route("/usr/:user/psw/:password/files/*path", get(files));
 
     let addr = local_ip().unwrap().to_string();
     let port = 3000;

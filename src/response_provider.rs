@@ -1,5 +1,5 @@
 use axum::{
-    http::header,
+    http::{header,StatusCode},
     response::{IntoResponse, Response},
     Json,
 };
@@ -17,6 +17,19 @@ struct File {
 }
 
 //###########################################################################################//
+
+pub async fn respond_or_fallback(complete_path: &str) -> Response {
+    if let Ok(r) = respond(&complete_path).await {
+        r
+    } else {
+        //fallback
+        (
+            StatusCode::NOT_FOUND,
+            format!("Cannot find {complete_path}"),
+        )
+            .into_response()
+    }
+}
 
 /*read the file or the directory and provide a response for the network
 it can be :
@@ -110,7 +123,7 @@ async fn respond_dir(path: &str) -> io::Result<Response> {
             fls.push(File {
                 name: name.clone(),
                 content_type: resolve_extention(&name),
-                full_path: format!("{}/{}", path, name.clone()),
+                full_path: format!("{}/{}", trim_path(path), name.clone()),
             });
         }
         //directory
@@ -119,7 +132,7 @@ async fn respond_dir(path: &str) -> io::Result<Response> {
             fls.push(File {
                 name: name.clone(),
                 content_type: "dir".to_string(),
-                full_path: format!("{}/{}", path, name.clone()),
+                full_path: format!("{}/{}", trim_path(path), name.clone()),
             });
         }
     }
@@ -155,3 +168,10 @@ fn resolve_extention(f_name: &str) -> String {
 }
 
 //todo : trim path in full-path for repond_dir if request ends whit "/"
+fn trim_path(path: &str) -> String {
+    let mut trimmed = String::from(path);
+    if trimmed.ends_with("/") {
+        trimmed.pop();
+    }
+    trimmed
+}
