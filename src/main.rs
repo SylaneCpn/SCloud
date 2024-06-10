@@ -7,6 +7,7 @@ mod response_provider;
 use axum::{routing::get, Router};
 
 use assets::assets;
+use auth::verify_user;
 use index::root;
 use raw::files;
 use raw::main_repo;
@@ -20,7 +21,8 @@ async fn main() {
         .route("/", get(root))
         .route("/assets/*path", get(assets))
         .route("/usr/:user/psw/:password/files/*path", get(files))
-        .route("/usr/:user/psw/:password/files/", get(main_repo));
+        .route("/usr/:user/psw/:password/files/", get(main_repo))
+        .route("/usr/:user/psw/:password/", get(verify_user));
 
     let addr = local_ip().unwrap().to_string();
     let port = 3000;

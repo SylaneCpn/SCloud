@@ -1,11 +1,24 @@
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
+use axum::{
+    extract::Path,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     pub name: String,
     pub password: String,
     pub admin: bool,
+}
+pub async fn verify_user(Path((user, password)): Path<(String, String)>) -> Response {
+    if let Some(u) = check_user(&user, &password).await {
+        format!("User {} verified", u.name).into_response()
+    } else {
+        (StatusCode::NOT_FOUND, format!("User does not exist/Bad password")).into_response()
+    }
 }
 
 pub async fn check_user(name: &str, password: &str) -> Option<User> {

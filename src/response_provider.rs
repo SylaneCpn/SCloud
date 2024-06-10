@@ -20,6 +20,7 @@ struct File {
 
 //###########################################################################################//
 
+//respond to the file if it exist ele send a not found response
 pub async fn respond_or_fallback(complete_path: &str) -> Response {
     if let Ok(r) = respond(&complete_path).await {
         r

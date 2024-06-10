@@ -34,6 +34,7 @@ pub async fn files(Path((user, password, path)): Path<(String, String, String)>)
     }
 }
 
+//send directory or
 pub async fn main_repo(Path((user, password)): Path<(String, String)>) -> Response {
     let u = check_user(&user, &password).await;
     if let Ok(r) = respond_main_dir(&u).await {
