@@ -7,7 +7,7 @@ use axum::{
 use tokio::{fs, io};
 
 use crate::auth::{check_user, verify_access, User};
-use crate::response_provider::{slash_path, trim_path};
+use crate::response_provider::trim_path;
 
 pub async fn create_file(Path((user, password, path)): Path<(String, String, String)>) {}
 
