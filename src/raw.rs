@@ -14,22 +14,13 @@ pub async fn files(Path((user, password, path)): Path<(String, String, String)>)
     let complete_path = format!("files/{}", &path);
 
     //check if user is in the database
-    if let Some(u) = check_user(&user, &password).await {
-        //verify if the user has access to the source
-        if verify_access(&u, &path) {
-            //respond if access granted
-            respond_or_fallback(&complete_path).await
-        } else {
-            //respond to unauthorised user
-            (StatusCode::UNAUTHORIZED, format!("Not Authorized")).into_response()
-        }
-    }
-    //if user doesn't exist give him access anyway if it's from the public repo
-    else if path.starts_with("public/") {
+    let u = check_user(&user, &password).await;
+    //verify if the user has access to the source
+    if verify_access(&u, &path) {
+        //respond if access granted
         respond_or_fallback(&complete_path).await
-    }
-    //respond to unauthorised user
-    else {
+    } else {
+        //respond to unauthorised user
         (StatusCode::UNAUTHORIZED, format!("Not Authorized")).into_response()
     }
 }

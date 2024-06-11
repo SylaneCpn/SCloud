@@ -60,35 +60,23 @@ pub async fn respond_main_dir(user: &Option<User>) -> io::Result<Response> {
     while let Some(entry) = entries.next_entry().await? {
         //check if user is connected
         let metadata = entry.metadata().await?;
-        if let Some(ref user) = *user {
-            if verify_access(user, &slash_path(&entry.file_name().into_string().unwrap())) {
-                //file
-                if metadata.is_file() {
-                    let name = entry.file_name().into_string().unwrap();
-                    fls.push(File {
-                        name: name.clone(),
-                        content_type: resolve_extention(&name),
-                        full_path: format!("{}/{}", trim_path(path), name.clone()),
-                    });
-                }
-                //directory
-                else {
-                    let name = entry.file_name().into_string().unwrap();
-                    fls.push(File {
-                        name: name.clone(),
-                        content_type: "dir".to_string(),
-                        full_path: format!("{}/{}", trim_path(path), slash_path(&name)),
-                    });
-                }
+        if verify_access(user, &slash_path(&entry.file_name().into_string().unwrap())) {
+            //file
+            if metadata.is_file() {
+                let name = entry.file_name().into_string().unwrap();
+                fls.push(File {
+                    name: name.clone(),
+                    content_type: resolve_extention(&name),
+                    full_path: format!("{}/{}", trim_path(path), name.clone()),
+                });
             }
-        } else {
-            //only return the public dir
-            if !metadata.is_file() && (&entry.file_name().into_string().unwrap() == "public") {
+            //directory
+            else {
                 let name = entry.file_name().into_string().unwrap();
                 fls.push(File {
                     name: name.clone(),
                     content_type: "dir".to_string(),
-                    full_path: format!("{}/{}", trim_path(path), name.clone()),
+                    full_path: format!("{}/{}", trim_path(path), slash_path(&name)),
                 });
             }
         }
@@ -216,7 +204,7 @@ fn resolve_extention(f_name: &str) -> String {
     }
 }
 
-//todo : trim path in full-path for repond_dir if request ends whit "/"
+//trim path in full-path for repond_dir if request ends whit "/"
 fn trim_path(path: &str) -> String {
     let mut trimmed = String::from(path);
     if trimmed.ends_with("/") {
@@ -225,6 +213,7 @@ fn trim_path(path: &str) -> String {
     trimmed
 }
 
+//add slash to path if request doesn't ends whit "/"
 fn slash_path(path: &str) -> String {
     let mut added = String::from(path);
     if !added.ends_with("/") {

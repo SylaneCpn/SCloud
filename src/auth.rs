@@ -13,14 +13,21 @@ pub struct User {
     pub password: String,
     pub admin: bool,
 }
+//let the app know if the user is correct or not
 pub async fn verify_user(Path((user, password)): Path<(String, String)>) -> Response {
     if let Some(u) = check_user(&user, &password).await {
         format!("User {} verified", u.name).into_response()
     } else {
-        (StatusCode::NOT_FOUND, format!("User does not exist/Bad password")).into_response()
+        (
+            StatusCode::NOT_FOUND,
+            format!("User does not exist/Bad password"),
+        )
+            .into_response()
     }
 }
 
+//check if the user is in the database and if the password is correct 
+//returns None if unsuccessful
 pub async fn check_user(name: &str, password: &str) -> Option<User> {
     let mut usr = None;
     let content = fs::read_to_string("users.json").await.unwrap();
@@ -35,15 +42,24 @@ pub async fn check_user(name: &str, password: &str) -> Option<User> {
     usr
 }
 
-pub fn verify_access(user: &User, path: &str) -> bool {
-    if user.admin {
-        //grant access if admin
-        true
-    } else if path.starts_with("public/") || path.starts_with(&format!("{}/", user.name)) {
-        //user has access to the repo
-        true
+//provide access or not for the requested path
+pub fn verify_access(user: &Option<User>, path: &str) -> bool {
+    if let Some(u) = &*user {
+        if u.admin {
+            //grant access if admin
+            true
+        } else if path.starts_with("public/") || path.starts_with(&format!("{}/", u.name)) {
+            //user has access to the repo
+            true
+        } else {
+            //unauthorised
+            false
+        }
     } else {
-        //unauthorised
-        false
+        if path.starts_with("public/") {
+            true
+        } else {
+            false
+        }
     }
 }
