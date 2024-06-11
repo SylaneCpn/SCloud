@@ -1,14 +1,20 @@
 mod assets;
 mod auth;
 mod index;
+mod manip;
 mod raw;
 mod response_provider;
 
-use axum::{routing::get, Router};
+use axum::{
+    routing::{delete, get, post},
+    Router,
+};
 
 use assets::assets;
 use auth::verify_user;
 use index::root;
+use manip::create_file;
+use manip::remove_ressource;
 use raw::files;
 use raw::main_repo;
 
@@ -22,7 +28,15 @@ async fn main() {
         .route("/assets/*path", get(assets))
         .route("/usr/:user/psw/:password/files/*path", get(files))
         .route("/usr/:user/psw/:password/files/", get(main_repo))
-        .route("/usr/:user/psw/:password/", get(verify_user));
+        .route("/usr/:user/psw/:password/", get(verify_user))
+        .route(
+            "/rm/usr/:user/psw/:password/files/*path",
+            delete(remove_ressource),
+        )
+        .route(
+            "/addf/usr/:user/psw/:password/files/*path",
+            post(create_file),
+        );
 
     let addr = local_ip().unwrap().to_string();
     let port = 3000;

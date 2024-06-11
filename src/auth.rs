@@ -13,7 +13,9 @@ pub struct User {
     pub password: String,
     pub admin: bool,
 }
+//###########################################################################################//
 //let the app know if the user is correct or not
+
 pub async fn verify_user(Path((user, password)): Path<(String, String)>) -> Response {
     if let Some(u) = check_user(&user, &password).await {
         format!("User {} verified", u.name).into_response()
@@ -26,7 +28,7 @@ pub async fn verify_user(Path((user, password)): Path<(String, String)>) -> Resp
     }
 }
 
-//check if the user is in the database and if the password is correct 
+//check if the user is in the database and if the password is correct
 //returns None if unsuccessful
 pub async fn check_user(name: &str, password: &str) -> Option<User> {
     let mut usr = None;
