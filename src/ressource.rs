@@ -1,3 +1,6 @@
+/*Handle get requests that respond with content of the files of the server, require auth */
+
+//###########################################################################################//
 use axum::{
     extract::Path,
     http::StatusCode,
@@ -5,7 +8,7 @@ use axum::{
 };
 
 use crate::auth::{check_user, verify_access};
-use crate::response_provider::{respond_main_dir, respond_or_fallback};
+use crate::reader::{respond_main_dir, respond_or_fallback};
 
 //###########################################################################################//
 
@@ -21,7 +24,7 @@ pub async fn files(Path((user, password, path)): Path<(String, String, String)>)
         respond_or_fallback(&complete_path).await
     } else {
         //respond to unauthorised user
-        (StatusCode::UNAUTHORIZED, format!("Not Authorized")).into_response()
+        (StatusCode::UNAUTHORIZED, format!("Not Authorized\n")).into_response()
     }
 }
 
@@ -31,6 +34,6 @@ pub async fn main_repo(Path((user, password)): Path<(String, String)>) -> Respon
     if let Ok(r) = respond_main_dir(&u).await {
         r
     } else {
-        (StatusCode::NOT_FOUND, format!("Something went wrong")).into_response()
+        (StatusCode::NOT_FOUND, format!("Something went wrong\n")).into_response()
     }
 }

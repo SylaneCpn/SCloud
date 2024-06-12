@@ -1,3 +1,7 @@
+/*Read files present on the server and respond the content if it exist and if the user is authorized */
+
+//###########################################################################################//
+
 use axum::{
     http::{header, StatusCode},
     response::{IntoResponse, Response},
@@ -8,6 +12,7 @@ use tokio::{fs, io};
 use serde::Serialize;
 
 use crate::auth::{verify_access, User};
+use crate::utils::{slash_path, trim_path};
 //###########################################################################################//
 
 //internal file structure to send the contents of a directory as a json to the network
@@ -28,7 +33,7 @@ pub async fn respond_or_fallback(complete_path: &str) -> Response {
         //fallback
         (
             StatusCode::NOT_FOUND,
-            format!("Cannot find {complete_path}"),
+            format!("Cannot find {complete_path}\n"),
         )
             .into_response()
     }
@@ -83,24 +88,6 @@ pub async fn respond_main_dir(user: &Option<User>) -> io::Result<Response> {
     }
 
     Ok(Json(fls).into_response())
-}
-
-//add slash to path if request doesn't ends whit "/"
-pub fn slash_path(path: &str) -> String {
-    let mut added = String::from(path);
-    if !added.ends_with("/") {
-        added += "/";
-    }
-    added
-}
-
-//trim path in full-path for repond_dir if request ends whit "/"
-pub fn trim_path(path: &str) -> String {
-    let mut trimmed = String::from(path);
-    if trimmed.ends_with("/") {
-        trimmed.pop();
-    }
-    trimmed
 }
 
 //###########################################################################################//

@@ -1,3 +1,7 @@
+/*Handle auth for the app*/
+
+//###########################################################################################//
+
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 
@@ -18,11 +22,11 @@ pub struct User {
 
 pub async fn verify_user(Path((user, password)): Path<(String, String)>) -> Response {
     if let Some(u) = check_user(&user, &password).await {
-        format!("User {} verified", u.name).into_response()
+        format!("User {} verified\n", u.name).into_response()
     } else {
         (
             StatusCode::NOT_FOUND,
-            format!("User does not exist/Bad password"),
+            format!("User does not exist/Bad password\n"),
         )
             .into_response()
     }

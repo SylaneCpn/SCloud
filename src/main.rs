@@ -2,8 +2,10 @@ mod assets;
 mod auth;
 mod index;
 mod manip;
-mod raw;
-mod response_provider;
+mod reader;
+mod ressource;
+mod utils;
+mod writer;
 
 use axum::{
     routing::{delete, get, post},
@@ -15,8 +17,8 @@ use auth::verify_user;
 use index::root;
 use manip::create_file;
 use manip::remove_ressource;
-use raw::files;
-use raw::main_repo;
+use ressource::files;
+use ressource::main_repo;
 
 use local_ip_address::local_ip;
 use tokio;
