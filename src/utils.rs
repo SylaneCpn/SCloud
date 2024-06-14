@@ -19,3 +19,12 @@ pub fn trim_path(path: &str) -> String {
     }
     trimmed
 }
+
+pub fn root_path(path : &str) -> bool {
+    let trimmed = trim_path(path);
+        //check if those are users directorires
+        let path_dept = trimmed.split("/").map(|_| 1).sum::<usize>();
+        //cannot remove root diectories
+        if path_dept == 2 {true} else {false}
+
+}

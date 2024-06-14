@@ -7,28 +7,25 @@ use axum::{
 use tokio::{fs, io};
 
 use crate::auth::User;
-use crate::utils::trim_path;
+use crate::utils::{trim_path,root_path};
 
 pub async fn remove_or_fallback(path: &str, user: &Option<User>) -> Response {
     //if user connected
     if let Some(_u) = &*user {
-        let trimmed = trim_path(path);
-        //check if those are users directorires
-        let path_dept = trimmed.split("/").map(|_| 1).sum::<usize>();
-        //cannot remove root diectories
-        if path_dept == 2 {
+    
+        if root_path(path) {
             (
                 StatusCode::UNAUTHORIZED,
                 format!("Cannot remove that dir\n"),
             )
                 .into_response()
-        } else {
-            if let Ok(r) = remove(path).await {
+        } 
+            else if let Ok(r) = remove(path).await {
                 r
             } else {
                 (StatusCode::NOT_FOUND, format!("Cannot find {path}\n")).into_response()
             }
-        }
+        
     }
     //guests cannot remove files
     else {
@@ -64,8 +61,15 @@ async fn remove(path: &str) -> io::Result<Response> {
 }
 
 pub async fn write_file_or_fallback(path : &str , content : &[u8]) -> Response {
+    if root_path(path) {
+        (
+            StatusCode::UNAUTHORIZED,
+            format!("Cannot write file here\n"),
+        )
+            .into_response()
+    }
 
-    if let Ok(r) = write_file(path , content).await {
+    else if let Ok(r) = write_file(path , content).await {
         r
     }
 
@@ -87,7 +91,15 @@ async fn write_file(path : &str , content : &[u8]) -> io::Result<Response> {
 
 pub async fn write_dir_or_fallback(path : &str) -> Response {
     let trimmed = trim_path(path);
-    if let Ok(r) = write_dir(&trimmed).await {
+    if root_path(path) {
+        (
+            StatusCode::UNAUTHORIZED,
+            format!("Cannot write dir here\n"),
+        )
+            .into_response()
+
+    }
+    else if let Ok(r) = write_dir(&trimmed).await {
         r
     }
 
