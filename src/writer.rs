@@ -7,25 +7,22 @@ use axum::{
 use tokio::{fs, io};
 
 use crate::auth::User;
-use crate::utils::{trim_path,root_path};
+use crate::utils::{root_path, trim_path};
 
 pub async fn remove_or_fallback(path: &str, user: &Option<User>) -> Response {
     //if user connected
     if let Some(_u) = &*user {
-    
         if root_path(path) {
             (
                 StatusCode::UNAUTHORIZED,
                 format!("Cannot remove that dir\n"),
             )
                 .into_response()
-        } 
-            else if let Ok(r) = remove(path).await {
-                r
-            } else {
-                (StatusCode::NOT_FOUND, format!("Cannot find {path}\n")).into_response()
-            }
-        
+        } else if let Ok(r) = remove(path).await {
+            r
+        } else {
+            (StatusCode::NOT_FOUND, format!("Cannot find {path}\n")).into_response()
+        }
     }
     //guests cannot remove files
     else {
@@ -60,27 +57,22 @@ async fn remove(path: &str) -> io::Result<Response> {
     }
 }
 
-pub async fn write_file_or_fallback(path : &str , content : &[u8]) -> Response {
+pub async fn write_file_or_fallback(path: &str, content: &[u8]) -> Response {
     if root_path(path) {
         (
             StatusCode::UNAUTHORIZED,
             format!("Cannot write file here\n"),
         )
             .into_response()
-    }
-
-    else if let Ok(r) = write_file(path , content).await {
+    } else if let Ok(r) = write_file(path, content).await {
         r
-    }
-
-    else {
+    } else {
         (StatusCode::BAD_REQUEST, format!("Cannot write {path}\n")).into_response()
     }
-
 }
 
-async fn write_file(path : &str , content : &[u8]) -> io::Result<Response> {
-    fs::write(path,content).await?;
+async fn write_file(path: &str, content: &[u8]) -> io::Result<Response> {
+    fs::write(path, content).await?;
     Ok((
         StatusCode::OK,
         format!("file : {} written successfully\n", path),
@@ -88,29 +80,18 @@ async fn write_file(path : &str , content : &[u8]) -> io::Result<Response> {
         .into_response())
 }
 
-
-pub async fn write_dir_or_fallback(path : &str) -> Response {
+pub async fn write_dir_or_fallback(path: &str) -> Response {
     let trimmed = trim_path(path);
     if root_path(path) {
-        (
-            StatusCode::UNAUTHORIZED,
-            format!("Cannot write dir here\n"),
-        )
-            .into_response()
-
-    }
-    else if let Ok(r) = write_dir(&trimmed).await {
+        (StatusCode::UNAUTHORIZED, format!("Cannot write dir here\n")).into_response()
+    } else if let Ok(r) = write_dir(&trimmed).await {
         r
-    }
-
-    else {
+    } else {
         (StatusCode::BAD_REQUEST, format!("Cannot write {path}\n")).into_response()
     }
-
 }
 
-
-async fn write_dir(path : &str) -> io::Result<Response> {
+async fn write_dir(path: &str) -> io::Result<Response> {
     fs::create_dir(path).await?;
     Ok((
         StatusCode::OK,

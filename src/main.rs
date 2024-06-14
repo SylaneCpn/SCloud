@@ -8,16 +8,16 @@ mod utils;
 mod writer;
 
 use axum::{
+    extract::DefaultBodyLimit,
     routing::{delete, get, post},
     Router,
-    extract::DefaultBodyLimit,
 };
 
 use assets::assets;
 use auth::verify_user;
 use index::root;
-use manip::create_file;
 use manip::create_dir;
+use manip::create_file;
 use manip::remove_ressource;
 use ressource::files;
 use ressource::main_repo;
@@ -35,14 +35,17 @@ async fn main() {
         .route("/usr/:user/psw/:password/", get(verify_user))
         .route(
             "/rm/usr/:user/psw/:password/files/*path",
-            delete(remove_ressource)
+            delete(remove_ressource),
         )
-        .route("/adddir/usr/:user/psw/:password/files/*path",
-            post(create_dir))
+        .route(
+            "/adddir/usr/:user/psw/:password/files/*path",
+            post(create_dir),
+        )
         .route(
             "/addfile/usr/:user/psw/:password/files/*path",
-            post(create_file)
-        ).layer(DefaultBodyLimit::disable());
+            post(create_file),
+        )
+        .layer(DefaultBodyLimit::disable());
 
     let addr = local_ip().unwrap().to_string();
     let port = 3000;

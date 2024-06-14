@@ -2,24 +2,25 @@
 
 //###########################################################################################//
 use axum::{
+    body::Bytes,
     extract::Path,
     http::StatusCode,
     response::{IntoResponse, Response},
-    body::Bytes
 };
 
 use crate::auth::{check_user, verify_access};
-use crate::writer::{remove_or_fallback,write_file_or_fallback,write_dir_or_fallback};
+use crate::writer::{remove_or_fallback, write_dir_or_fallback, write_file_or_fallback};
 
-pub async fn create_file(Path((user, password, path)): Path<(String, String, String)> , body : Bytes) -> Response {
-
-
+pub async fn create_file(
+    Path((user, password, path)): Path<(String, String, String)>,
+    body: Bytes,
+) -> Response {
     let complete_path = format!("files/{}", &path);
     let content = body.to_vec();
     let u = check_user(&user, &password).await;
     if verify_access(&u, &path) {
         //respond if access granted
-        write_file_or_fallback(&complete_path , &content).await
+        write_file_or_fallback(&complete_path, &content).await
     } else {
         //respond to unauthorised user
         (StatusCode::UNAUTHORIZED, format!("Not Authorized\n")).into_response()
@@ -27,8 +28,6 @@ pub async fn create_file(Path((user, password, path)): Path<(String, String, Str
 }
 
 pub async fn create_dir(Path((user, password, path)): Path<(String, String, String)>) -> Response {
-
-
     let complete_path = format!("files/{}", &path);
     let u = check_user(&user, &password).await;
     if verify_access(&u, &path) {
