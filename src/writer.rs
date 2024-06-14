@@ -62,3 +62,47 @@ async fn remove(path: &str) -> io::Result<Response> {
             .into_response())
     }
 }
+
+pub async fn write_file_or_fallback(path : &str , content : &[u8]) -> Response {
+
+    if let Ok(r) = write_file(path , content).await {
+        r
+    }
+
+    else {
+        (StatusCode::BAD_REQUEST, format!("Cannot write {path}\n")).into_response()
+    }
+
+}
+
+async fn write_file(path : &str , content : &[u8]) -> io::Result<Response> {
+    fs::write(path,content).await?;
+    Ok((
+        StatusCode::OK,
+        format!("file : {} written successfully\n", path),
+    )
+        .into_response())
+}
+
+
+pub async fn write_dir_or_fallback(path : &str) -> Response {
+    let trimmed = trim_path(path);
+    if let Ok(r) = write_dir(&trimmed).await {
+        r
+    }
+
+    else {
+        (StatusCode::BAD_REQUEST, format!("Cannot write {path}\n")).into_response()
+    }
+
+}
+
+
+async fn write_dir(path : &str) -> io::Result<Response> {
+    fs::create_dir(path).await?;
+    Ok((
+        StatusCode::OK,
+        format!("Dir : {} written successfully\n", path),
+    )
+        .into_response())
+}
