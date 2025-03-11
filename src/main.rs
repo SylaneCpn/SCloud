@@ -19,6 +19,7 @@ use index::root;
 use manip::create_dir;
 use manip::create_file;
 use manip::remove_ressource;
+use manip::rename_ressource;
 use ressource::files;
 use ressource::main_repo;
 
@@ -45,10 +46,15 @@ async fn main() {
             "/addfile/usr/:user/psw/:password/files/*path",
             post(create_file),
         )
+        .route(
+            "/rename/usr/:user/psw/:password/to/:name/files/*path"
+        , post(rename_ressource),
+        )
         .layer(DefaultBodyLimit::disable());
 
     let addr = local_ip().unwrap().to_string();
-    let port = 3000;
+    // let addr = "127.0.0.1";
+    let port = 8000;
     println!("Server listening on {addr}:{port}");
     let listener = tokio::net::TcpListener::bind(format!("{addr}:{port}"))
         .await
