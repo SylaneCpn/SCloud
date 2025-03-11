@@ -30,7 +30,7 @@ use tokio;
 async fn main() {
     let app = Router::new()
         .route("/", get(root))
-        .route("/assets/*path", get(assets))
+        .route("/*path", get(assets))
         .route("/usr/:user/psw/:password/files/*path", get(files))
         .route("/usr/:user/psw/:password/files/", get(main_repo))
         .route("/usr/:user/psw/:password/", get(verify_user))
