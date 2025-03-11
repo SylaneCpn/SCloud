@@ -9,7 +9,9 @@ use axum::{
 };
 
 use crate::auth::{check_user, verify_access};
-use crate::writer::{rename_or_fallback,remove_or_fallback, write_dir_or_fallback, write_file_or_fallback};
+use crate::writer::{
+    remove_or_fallback, rename_or_fallback, write_dir_or_fallback, write_file_or_fallback,
+};
 
 pub async fn create_file(
     Path((user, password, path)): Path<(String, String, String)>,
@@ -56,7 +58,9 @@ pub async fn remove_ressource(
     }
 }
 
-pub async fn rename_ressource(Path((user , password , name , path)) : Path<(String , String , String , String)>) -> Response {
+pub async fn rename_ressource(
+    Path((user, password, name, path)): Path<(String, String, String, String)>,
+) -> Response {
     let complete_path = format!("files/{}", &path);
 
     //check if user is in the database

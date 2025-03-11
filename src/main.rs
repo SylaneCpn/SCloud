@@ -47,13 +47,12 @@ async fn main() {
             post(create_file),
         )
         .route(
-            "/rename/usr/:user/psw/:password/to/:name/files/*path"
-        , post(rename_ressource),
+            "/rename/usr/:user/psw/:password/to/:name/files/*path",
+            post(rename_ressource),
         )
         .layer(DefaultBodyLimit::disable());
 
     let addr = local_ip().unwrap().to_string();
-    // let addr = "127.0.0.1";
     let port = 8000;
     println!("Server listening on {addr}:{port}");
     let listener = tokio::net::TcpListener::bind(format!("{addr}:{port}"))
