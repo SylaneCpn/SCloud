@@ -106,43 +106,43 @@ async fn respond_file(path: &str) -> io::Result<Response> {
             //simple text
             "txt" => {
                 content_type = "text/plain".to_string();
-                return Ok((
+                Ok((
                     [(header::CONTENT_TYPE, &content_type)],
                     String::from_utf8_lossy(&contents).to_string(),
                 )
-                    .into_response());
+                    .into_response())
             }
 
             //other text format
             "html" | "css" | "js" | "rs" => {
                 content_type = format!("text/{}", content_ext);
-                return Ok((
+                Ok((
                     [(header::CONTENT_TYPE, &content_type)],
                     String::from_utf8_lossy(&contents).to_string(),
                 )
-                    .into_response());
+                    .into_response())
             }
 
             //image formats
             "png" | "jpg" | "svg" | "webp" | "gif" => {
                 content_type = format!("image/{}", content_ext);
-                return Ok(([(header::CONTENT_TYPE, &content_type)], contents).into_response());
+                Ok(([(header::CONTENT_TYPE, &content_type)], contents).into_response())
             }
 
             //pdf
             "pdf" => {
                 content_type = format!("application/{}", content_ext);
-                return Ok(([(header::CONTENT_TYPE, &content_type)], contents).into_response());
+                Ok(([(header::CONTENT_TYPE, &content_type)], contents).into_response())
             }
 
             //video formats
             "mp4" | "webm" => {
                 content_type = format!("video/{}", content_ext);
-                return Ok(([(header::CONTENT_TYPE, &content_type)], contents).into_response());
+                Ok(([(header::CONTENT_TYPE, &content_type)], contents).into_response())
             }
             //unkwown file extention
             _ => {
-                return Ok(contents.into_response());
+                Ok(contents.into_response())
             }
         }
     }

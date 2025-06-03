@@ -51,21 +51,9 @@ pub async fn check_user(name: &str, password: &str) -> Option<User> {
 //provide access or not for the requested path
 pub fn verify_access(user: &Option<User>, path: &str) -> bool {
     if let Some(u) = &*user {
-        if u.admin {
-            //grant access if admin
-            true
-        } else if path.starts_with("public/") || path.starts_with(&format!("{}/", u.name)) {
-            //user has access to the repo
-            true
-        } else {
-            //unauthorised
-            false
-        }
+        u.admin || path.starts_with("public/") || path.starts_with(&format!("{}/", u.name))   
     } else {
-        if path.starts_with("public/") {
-            true
-        } else {
-            false
-        }
+        path.starts_with("public/") 
+        
     }
 }
